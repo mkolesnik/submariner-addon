@@ -6,7 +6,7 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/golang/mock v1.6.0
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.18.1
+	github.com/onsi/gomega v1.19.0
 	github.com/openshift/api v0.0.0-20210915110300-3cd8091317c4
 	github.com/openshift/build-machinery-go v0.0.0-20211213093930-7e33a7eb4ce3
 	github.com/openshift/library-go v0.0.0-20210916194400-ae21aab32431
@@ -14,7 +14,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
-	github.com/submariner-io/admiral v0.12.0-m3
+	github.com/submariner-io/admiral v0.13.0-rc0
 	github.com/submariner-io/cloud-prepare v0.12.0-m3.0.20220117145104-8c71f70f26cb
 	github.com/submariner-io/submariner v0.12.0-m3.0.20220118140616-86d7b7924805
 	github.com/submariner-io/submariner-operator v0.12.0-m3.0.20220118152331-5eb19252606e
@@ -87,10 +87,10 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
 	github.com/pkg/profile v1.3.0 // indirect
-	github.com/prometheus/client_golang v1.11.0 // indirect
+	github.com/prometheus/client_golang v1.12.2 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
-	github.com/prometheus/common v0.30.0 // indirect
-	github.com/prometheus/procfs v0.7.2 // indirect
+	github.com/prometheus/common v0.32.1 // indirect
+	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/robfig/cron v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	go.etcd.io/etcd/api/v3 v3.5.1 // indirect
@@ -113,10 +113,10 @@ require (
 	go.uber.org/zap v1.17.0 // indirect
 	golang.org/x/crypto v0.0.0-20211215165025-cf75a172585e // indirect
 	golang.org/x/mod v0.5.1 // indirect
-	golang.org/x/net v0.0.0-20211208012354-db4efeb81f4b // indirect
+	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
-	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
+	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	golang.org/x/tools v0.1.8 // indirect
@@ -132,7 +132,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiserver v0.22.1 // indirect
 	k8s.io/gengo v0.0.0-20201214224949-b6c5ce23f027 // indirect
-	k8s.io/klog v1.0.0 // indirect
 	k8s.io/kube-aggregator v0.22.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20210421082810-95288971da7e // indirect
 	k8s.io/utils v0.0.0-20210802155522-efc7438f0176 // indirect
