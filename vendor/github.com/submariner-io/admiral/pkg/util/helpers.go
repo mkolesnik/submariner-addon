@@ -19,6 +19,8 @@ limitations under the License.
 package util
 
 import (
+	"fmt"
+
 	"github.com/pkg/errors"
 	resourceUtil "github.com/submariner-io/admiral/pkg/resource"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -28,12 +30,13 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
-	"k8s.io/klog"
 )
 
 const (
-	MetadataField = "metadata"
-	LabelsField   = "labels"
+	MetadataField    = "metadata"
+	LabelsField      = "labels"
+	AnnotationsField = "annotations"
+	StatusField      = "status"
 )
 
 func BuildRestMapper(restConfig *rest.Config) (meta.RESTMapper, error) {
@@ -50,8 +53,8 @@ func BuildRestMapper(restConfig *rest.Config) (meta.RESTMapper, error) {
 	return restmapper.NewDiscoveryRESTMapper(groupResources), nil
 }
 
-func ToUnstructuredResource(from runtime.Object, restMapper meta.RESTMapper) (*unstructured.Unstructured, *schema.GroupVersionResource,
-	error) {
+func ToUnstructuredResource(from runtime.Object, restMapper meta.RESTMapper,
+) (*unstructured.Unstructured, *schema.GroupVersionResource, error) {
 	to, err := resourceUtil.ToUnstructured(from)
 	if err != nil {
 		return nil, nil, err //nolint:wrapcheck // ok to return as is
@@ -91,8 +94,40 @@ func GetSpec(obj *unstructured.Unstructured) interface{} {
 func GetNestedField(obj *unstructured.Unstructured, fields ...string) interface{} {
 	nested, _, err := unstructured.NestedFieldNoCopy(obj.Object, fields...)
 	if err != nil {
-		klog.Errorf("Error retrieving %v field for %#v: %v", fields, obj, err)
+		panic(fmt.Sprintf("Error retrieving %v field for %#v: %v", fields, obj, err))
 	}
 
 	return nested
+}
+
+func SetNestedField(to map[string]interface{}, value interface{}, fields ...string) {
+	if value != nil {
+		err := unstructured.SetNestedField(to, value, fields...)
+		if err != nil {
+			panic(fmt.Sprintf("Error setting value (%v) for nested field %v in object %v: %v", value, fields, to, err))
+		}
+	}
+}
+
+// CopyImmutableMetadata copies the static metadata fields (except Labels and Annotations) from one resource to another.
+func CopyImmutableMetadata(from, to *unstructured.Unstructured) *unstructured.Unstructured {
+	value, _, _ := unstructured.NestedFieldCopy(from.Object, MetadataField)
+	if value == nil {
+		return to
+	}
+
+	fromMetadata := value.(map[string]interface{})
+	err := unstructured.SetNestedStringMap(fromMetadata, to.GetLabels(), LabelsField)
+	if err != nil {
+		panic(err)
+	}
+
+	err = unstructured.SetNestedStringMap(fromMetadata, to.GetAnnotations(), AnnotationsField)
+	if err != nil {
+		panic(err)
+	}
+
+	SetNestedField(to.Object, fromMetadata, MetadataField)
+
+	return to
 }
