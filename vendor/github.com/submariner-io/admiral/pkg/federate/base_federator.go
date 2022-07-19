@@ -30,7 +30,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
-	"k8s.io/klog"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type baseFederator struct {
@@ -40,13 +40,16 @@ type baseFederator struct {
 	keepMetadataFields map[string]bool
 }
 
+var logger = log.Logger{Logger: logf.Log.WithName("Federator")}
+
 func newBaseFederator(dynClient dynamic.Interface, restMapper meta.RESTMapper, targetNamespace string,
-	keepMetadataField ...string) *baseFederator {
+	keepMetadataField ...string,
+) *baseFederator {
 	b := &baseFederator{
 		dynClient:          dynClient,
 		restMapper:         restMapper,
 		targetNamespace:    targetNamespace,
-		keepMetadataFields: map[string]bool{"name": true, "namespace": true, util.LabelsField: true, "annotations": true},
+		keepMetadataFields: map[string]bool{"name": true, "namespace": true, util.LabelsField: true, util.AnnotationsField: true},
 	}
 
 	for _, field := range keepMetadataField {
@@ -62,7 +65,7 @@ func (f *baseFederator) Delete(obj runtime.Object) error {
 		return err
 	}
 
-	klog.V(log.LIBTRACE).Infof("Deleting resource: %#v", toDelete)
+	logger.V(log.LIBTRACE).Infof("Deleting resource: %#v", toDelete)
 
 	return resourceClient.Delete(context.TODO(), toDelete.GetName(), metav1.DeleteOptions{})
 }
@@ -91,23 +94,4 @@ func (f *baseFederator) prepareResourceForSync(obj *unstructured.Unstructured) {
 			unstructured.RemoveNestedField(obj.Object, util.MetadataField, field)
 		}
 	}
-}
-
-func setNestedField(to map[string]interface{}, value interface{}, fields ...string) {
-	if value != nil {
-		err := unstructured.SetNestedField(to, value, fields...)
-		if err != nil {
-			klog.Errorf("Error setting value (%v) for nested field %v in object %v: %v", value, fields, to, err)
-		}
-	}
-}
-
-func preserveMetadata(from, to *unstructured.Unstructured) *unstructured.Unstructured {
-	// Preserve the existing metadata info (except Labels and Annotations), specifically the ResourceVersion which must
-	// be set on an update operation.
-	from.SetLabels(to.GetLabels())
-	from.SetAnnotations(to.GetAnnotations())
-	setNestedField(to.Object, util.GetMetadata(from), util.MetadataField)
-
-	return to
 }

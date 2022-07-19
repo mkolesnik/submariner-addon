@@ -27,6 +27,7 @@ import (
 	"github.com/submariner-io/admiral/pkg/syncer/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -49,10 +50,10 @@ func (r *DeleteCollectionReactor) react(action testing.Action) (bool, runtime.Ob
 	case testing.DeleteCollectionActionImpl:
 		defer GinkgoRecover()
 
-		obj, err := r.invoke(testing.NewListAction(action.GetResource(), r.gvk, action.GetNamespace(), metav1.ListOptions{
+		obj, err := invokeReactors(testing.NewListAction(action.GetResource(), r.gvk, action.GetNamespace(), metav1.ListOptions{
 			LabelSelector: dc.ListRestrictions.Labels.String(),
 			FieldSelector: dc.ListRestrictions.Fields.String(),
-		}))
+		}), r.reactors)
 		if err != nil {
 			return true, nil, err
 		}
@@ -64,8 +65,11 @@ func (r *DeleteCollectionReactor) react(action testing.Action) (bool, runtime.Ob
 
 		for _, m := range items {
 			item := unstructured.Unstructured{Object: m.(map[string]interface{})}
-			if dc.ListRestrictions.Labels.Matches(labels.Set(item.GetLabels())) {
-				_, err = r.invoke(testing.NewDeleteAction(action.GetResource(), action.GetNamespace(), item.GetName()))
+
+			fieldSet := fields.Set{"metadata.namespace": item.GetNamespace(), "metadata.name": item.GetName()}
+			if dc.ListRestrictions.Labels.Matches(labels.Set(item.GetLabels())) &&
+				dc.ListRestrictions.Fields.Matches(fieldSet) {
+				_, err = invokeReactors(testing.NewDeleteAction(action.GetResource(), item.GetNamespace(), item.GetName()), r.reactors)
 				if err != nil {
 					return true, nil, err
 				}
@@ -78,8 +82,8 @@ func (r *DeleteCollectionReactor) react(action testing.Action) (bool, runtime.Ob
 	}
 }
 
-func (r *DeleteCollectionReactor) invoke(action testing.Action) (runtime.Object, error) {
-	for _, reactor := range r.reactors {
+func invokeReactors(action testing.Action, reactors []testing.Reactor) (runtime.Object, error) {
+	for _, reactor := range reactors {
 		if !reactor.Handles(action) {
 			continue
 		}
